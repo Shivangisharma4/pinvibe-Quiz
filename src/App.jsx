@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Heading,
@@ -13,7 +13,9 @@ import {
   Grid,
   ChakraProvider,
   extendTheme,
+  HStack,
 } from '@chakra-ui/react';
+import html2canvas from 'html2canvas';
 
 // Custom theme to set global background
 const theme = extendTheme({
@@ -94,6 +96,7 @@ function App() {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
   const [vibeImagesToShow, setVibeImagesToShow] = useState([]);
+  const vibeCardRef = useRef(null); // Ref for capturing the vibe card
 
   const questions = [
     { question: "Where do you like to spend your weekend?", options: ["Home with a notebook", "City coding event", "Forest with no internet"] },
@@ -147,6 +150,34 @@ function App() {
     setQuizCompleted(false);
     setShuffledQuestions(shuffleArray([...questions]));
     setVibeImagesToShow([]);
+  };
+
+  const downloadVibeCard = () => {
+    if (vibeCardRef.current) {
+      html2canvas(vibeCardRef.current, { backgroundColor: '#F5F5F5', scale: 2 }).then((canvas) => {
+        const link = document.createElement('a');
+        link.download = 'pinvibe-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  };
+
+  const shareToX = () => {
+    if (vibeCardRef.current) {
+      html2canvas(vibeCardRef.current, { backgroundColor: '#F5F5F5', scale: 2 }).then((canvas) => {
+        const link = document.createElement('a');
+        link.download = 'pinvibe-card.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        const vibes = determineVibes();
+        const primaryVibe = vibes.primary;
+        const text = `I’m a ${primaryVibe}! ${vibeExplanations[primaryVibe]} Check out my vibe card (attach the downloaded image!) https://pinvibe-quiz.vercel.app/ `;
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+      });
+    }
   };
 
   const determineVibes = () => {
@@ -279,6 +310,7 @@ function App() {
             boxShadow="lg"
             w="full"
             textAlign="center"
+            ref={vibeCardRef} // Attach ref to capture this section
           >
             <VStack spacing={6}>
               <Heading as="h2" size="xl" color="red.800" fontFamily="'Comic Neue', cursive">
@@ -357,17 +389,41 @@ function App() {
                   No images found, try again!
                 </Text>
               )}
-              <Button
-                bgGradient={gradientBg}
-                color="white"
-                borderRadius="full"
-                boxShadow="md"
-                fontFamily="'Comic Neue', cursive"
-                _hover={buttonHover}
-                onClick={resetQuiz}
-              >
-                Try Again
-              </Button>
+              <HStack spacing={4}>
+                <Button
+                  bgGradient={gradientBg}
+                  color="white"
+                  borderRadius="full"
+                  boxShadow="md"
+                  fontFamily="'Comic Neue', cursive"
+                  _hover={buttonHover}
+                  onClick={resetQuiz}
+                >
+                  Try Again
+                </Button>
+                <Button
+                  bg="red.600"
+                  color="white"
+                  borderRadius="full"
+                  boxShadow="md"
+                  fontFamily="'Comic Neue', cursive"
+                  _hover={{ bg: 'red.700', transform: 'scale(1.05)' }}
+                  onClick={downloadVibeCard}
+                >
+                  Download Vibe
+                </Button>
+                <Button
+                  bg="black"
+                  color="white"
+                  borderRadius="full"
+                  boxShadow="md"
+                  fontFamily="'Comic Neue', cursive"
+                  _hover={{ bg: 'gray.800', transform: 'scale(1.05)' }}
+                  onClick={shareToX}
+                >
+                  Share to X
+                </Button>
+              </HStack>
             </VStack>
           </Box>
         )}
